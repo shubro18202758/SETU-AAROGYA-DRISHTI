@@ -325,10 +325,14 @@ services:
       REDPANDA_PROXY_URL: http://redpanda:8082
       ARCADEDB_URL: http://arcadedb:2480
       LLM_HEALTH_URL: http://llm:80/health
+      # Point the entity-extraction route at the TGI service via OpenAI-compatible API
+      OLLAMA_BASE_URL: http://llm:80
+      LLM_MODEL: Qwen/Qwen3.5-4B
     ports:
       - "3000:3000"
     depends_on:
       - backend
+      - llm
 
   console:
     <<: *service-defaults

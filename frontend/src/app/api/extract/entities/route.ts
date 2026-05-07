@@ -28,6 +28,7 @@ interface RequestBody {
 }
 
 const QWEN_MODEL = "qwen3.5:4b-q4_K_M";
+const LLM_MODEL = process.env.LLM_MODEL ?? QWEN_MODEL;
 const OLLAMA_BASE_URL = (process.env.OLLAMA_BASE_URL ?? "http://localhost:11434").replace(/\/+$/, "");
 const QWEN_TIMEOUT_MS = Number(process.env.QWEN_EXTRACT_TIMEOUT_MS ?? 12_000);
 const QWEN_MAX_CHARS = Number(process.env.QWEN_EXTRACT_MAX_CHARS ?? 18_000);
@@ -105,8 +106,8 @@ export async function POST(request: Request) {
   if (qwenExtraction.ok) {
     return NextResponse.json({
       ...qwenExtraction.result,
-      engine: "qwen-ollama-primary",
-      model: QWEN_MODEL,
+      engine: "qwen-llm-primary",
+      model: LLM_MODEL,
       fallback: false,
       attempts: qwenExtraction.attempts,
     });
@@ -319,38 +320,28 @@ async function extractWithQwen(text: string, query?: string): Promise<
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), QWEN_TIMEOUT_MS);
     try {
-      const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
+      const response = await fetch(`${OLLAMA_BASE_URL}/v1/chat/completions`, {
         method: "POST",
         cache: "no-store",
         signal: controller.signal,
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          model: QWEN_MODEL,
+          model: LLM_MODEL,
           stream: false,
-          format: "json",
-          think: false,
-          keep_alive: "10m",
-          system: buildQwenSystemPrompt(errorLog),
-          prompt: buildQwenUserPrompt(clippedText, query),
-          options: {
-            temperature: 0.05,
-            top_p: 0.65,
-            repeat_penalty: 1.1,
-            num_ctx: 8192,
-            num_predict: 3200,
-          },
+          messages: [
+            { role: "system", content: buildQwenSystemPrompt(errorLog) },
+            { role: "user", content: buildQwenUserPrompt(clippedText, query) },
+          ],
+          temperature: 0.05,
+          top_p: 0.65,
+          max_tokens: 3200,
         }),
       });
       if (!response.ok) {
-        return { ok: false, reason: `Ollama returned ${response.status} ${response.statusText || "response"}`, attempts: attempt };
+        return { ok: false, reason: `LLM endpoint returned ${response.status} ${response.statusText || "error"}`, attempts: attempt };
       }
-      const payload = (await response.json()) as { response?: unknown; thinking?: unknown; model?: unknown };
-      if (typeof payload.model === "string" && payload.model !== QWEN_MODEL) {
-        return { ok: false, reason: `Ollama used ${payload.model}; expected ${QWEN_MODEL}`, attempts: attempt };
-      }
-      const raw = typeof payload.response === "string" && payload.response.trim().length > 0
-        ? payload.response
-        : typeof payload.thinking === "string" ? payload.thinking : "";
+      const payload = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
+      const raw = (payload.choices?.[0]?.message?.content ?? "").trim();
       const parsed = parseJsonObject(raw);
       const result = validateQwenExtraction(parsed);
       return { ok: true, result, attempts: attempt };
