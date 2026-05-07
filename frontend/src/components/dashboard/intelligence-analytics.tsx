@@ -11,13 +11,19 @@ import {
   Funnel,
   FunnelChart,
   LabelList,
+  Legend,
+  RadialBar,
+  RadialBarChart,
   ResponsiveContainer,
+  Scatter,
+  ScatterChart,
   Tooltip,
   Treemap,
   XAxis,
   YAxis,
+  ZAxis,
 } from "recharts";
-import { BarChart2, GitBranch, Layers, Shrink, TrendingUp } from "lucide-react";
+import { Activity, BarChart2, GitBranch, Layers, Shrink, TrendingUp, Zap } from "lucide-react";
 
 import { Panel, PanelBody, PanelHeader, PanelTitle } from "@/components/ui/panel";
 
@@ -61,6 +67,75 @@ const ALL_KINDS = [
 
 const FUNNEL_FILLS = ["#22d3ee", "#60a5fa", "#34d399", "#fbbf24"] as const;
 
+// ── Seed data (shown on first paint, before any queries fire) ─────────────────
+const SEED_TREEMAP = [
+  { name: "ORG",    size: 28, fill: "#22d3ee" },
+  { name: "GEO",    size: 21, fill: "#34d399" },
+  { name: "PERSON", size: 17, fill: "#60a5fa" },
+  { name: "URL",    size: 14, fill: "#f59e0b" },
+  { name: "CVE",    size: 11, fill: "#f87171" },
+  { name: "IP",     size:  9, fill: "#fb7185" },
+  { name: "EVENT",  size:  8, fill: "#fbbf24" },
+  { name: "DATE",   size:  6, fill: "#93c5fd" },
+  { name: "EMAIL",  size:  5, fill: "#fcd34d" },
+  { name: "HASH",   size:  4, fill: "#e11d48" },
+  { name: "MONEY",  size:  3, fill: "#86efac" },
+];
+const SEED_CONF_BUCKETS = [
+  { range: "0%",  count:  1, fill: "#ef4444" },
+  { range: "10%", count:  2, fill: "#ef4444" },
+  { range: "20%", count:  2, fill: "#ef4444" },
+  { range: "30%", count:  3, fill: "#f59e0b" },
+  { range: "40%", count:  5, fill: "#f59e0b" },
+  { range: "50%", count:  8, fill: "#f59e0b" },
+  { range: "60%", count: 12, fill: "#22d3ee" },
+  { range: "70%", count: 19, fill: "#22d3ee" },
+  { range: "80%", count: 24, fill: "#34d399" },
+  { range: "90%", count: 17, fill: "#34d399" },
+];
+const SEED_CORR_SOURCES = ["hackernews", "reddit", "gdelt", "pubmed"];
+const SEED_CORR_MATRIX: Record<string, Partial<Record<string, number>>> = {
+  hackernews: { ORG: 12, URL: 18, CVE: 8,  IP: 6,  HASH: 4, GEO: 3 },
+  reddit:     { PERSON: 14, ORG: 9, EVENT: 7, GEO: 5, URL: 6, CVE: 3 },
+  gdelt:      { GEO: 22, EVENT: 16, ORG: 11, PERSON: 8, DATE: 9, MONEY: 5 },
+  pubmed:     { ORG: 15, PERSON: 12, DATE: 11, EVENT: 9, GEO: 7, MONEY: 6 },
+};
+function buildSeedCorrCells() {
+  const cells: Array<{ source: string; kind: string; count: number; intensity: number }> = [];
+  for (const src of SEED_CORR_SOURCES) {
+    const row = SEED_CORR_MATRIX[src] ?? {};
+    const maxVal = Math.max(1, ...Object.values(row));
+    for (const kind of ALL_KINDS) {
+      const count = row[kind] ?? 0;
+      cells.push({ source: src, kind, count, intensity: count / maxVal });
+    }
+  }
+  return cells;
+}
+const SEED_SCATTER: Array<{ kind: string; confidence: number; count: number; fill: string }> = [
+  { kind: "ORG",    confidence: 72, count: 28, fill: "#22d3ee" },
+  { kind: "GEO",    confidence: 76, count: 21, fill: "#34d399" },
+  { kind: "PERSON", confidence: 68, count: 17, fill: "#60a5fa" },
+  { kind: "URL",    confidence: 88, count: 14, fill: "#f59e0b" },
+  { kind: "CVE",    confidence: 93, count: 11, fill: "#f87171" },
+  { kind: "IP",     confidence: 91, count:  9, fill: "#fb7185" },
+  { kind: "EVENT",  confidence: 65, count:  8, fill: "#fbbf24" },
+  { kind: "DATE",   confidence: 82, count:  6, fill: "#93c5fd" },
+  { kind: "EMAIL",  confidence: 89, count:  5, fill: "#fcd34d" },
+  { kind: "HASH",   confidence: 86, count:  4, fill: "#e11d48" },
+  { kind: "MONEY",  confidence: 84, count:  3, fill: "#86efac" },
+];
+const SEED_RADIAL = [
+  { name: "ORG",    count: 28, fill: "#22d3ee" },
+  { name: "GEO",    count: 21, fill: "#34d399" },
+  { name: "PERSON", count: 17, fill: "#60a5fa" },
+  { name: "URL",    count: 14, fill: "#f59e0b" },
+  { name: "CVE",    count: 11, fill: "#f87171" },
+  { name: "IP",     count:  9, fill: "#fb7185" },
+  { name: "EVENT",  count:  8, fill: "#fbbf24" },
+  { name: "DATE",   count:  6, fill: "#93c5fd" },
+];
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface TreemapEntry {
   name: string;
@@ -96,6 +171,19 @@ interface FeedPulseDetail {
   ok: boolean;
 }
 
+interface ScatterPoint {
+  kind: string;
+  confidence: number; // 0-100
+  count: number;
+  fill: string;
+}
+
+interface RadialEntry {
+  name: string;
+  count: number;
+  fill: string;
+}
+
 interface FunnelState {
   crawled: number;
   withEntities: number;
@@ -105,30 +193,52 @@ interface FunnelState {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export function IntelligenceAnalytics() {
-  const [treemapData, setTreemapData] = useState<TreemapEntry[]>([]);
-  const [confBuckets, setConfBuckets] = useState<ConfBucket[]>(
-    Array.from({ length: 10 }, (_, i) => ({
-      range: `${i * 10}%`,
-      count: 0,
-      fill: i < 3 ? "#ef4444" : i < 6 ? "#f59e0b" : i < 8 ? "#22d3ee" : "#34d399",
-    })),
-  );
-  const [timeline, setTimeline] = useState<TimelinePoint[]>([]);
+  const [treemapData, setTreemapData] = useState<TreemapEntry[]>(SEED_TREEMAP);
+  const [confBuckets, setConfBuckets] = useState<ConfBucket[]>(SEED_CONF_BUCKETS);
+  const [timeline, setTimeline] = useState<TimelinePoint[]>(() => {
+    const now = Date.now();
+    return Array.from({ length: 10 }, (_, i) => ({
+      t: new Date(now - (9 - i) * 68_000).toLocaleTimeString("en-GB", { hour12: false }),
+      ORG:    4 + ((i * 3) % 5),
+      GEO:    3 + ((i * 2) % 4),
+      PERSON: 2 + (i % 3),
+      CVE:    1 + (i % 2),
+      URL:    5 + ((i * 4) % 6),
+    }));
+  });
   const [funnelData, setFunnelData] = useState<FunnelEntry[]>([
-    { name: "Crawled", value: 0, fill: FUNNEL_FILLS[0] },
-    { name: "w/ Entities", value: 0, fill: FUNNEL_FILLS[1] },
-    { name: "Extracted", value: 0, fill: FUNNEL_FILLS[2] },
-    { name: "High Conf", value: 0, fill: FUNNEL_FILLS[3] },
+    { name: "Crawled",     value: 420, fill: FUNNEL_FILLS[0] },
+    { name: "w/ Entities", value: 198, fill: FUNNEL_FILLS[1] },
+    { name: "Extracted",   value:  91, fill: FUNNEL_FILLS[2] },
+    { name: "High Conf",   value:  68, fill: FUNNEL_FILLS[3] },
   ]);
-  const [correlationSources, setCorrelationSources] = useState<string[]>([]);
+  const [correlationSources, setCorrelationSources] = useState<string[]>(SEED_CORR_SOURCES);
   const [correlationCells, setCorrelationCells] = useState<
     Array<{ source: string; kind: string; count: number; intensity: number }>
-  >([]);
+  >(buildSeedCorrCells);
+  const [scatterData, setScatterData] = useState<ScatterPoint[]>(SEED_SCATTER);
+  const [radialData, setRadialData] = useState<RadialEntry[]>(SEED_RADIAL);
 
-  const kindCountRef = useRef<Map<string, number>>(new Map());
-  const correlationRef = useRef<Map<string, Map<string, number>>>(new Map());
-  const timelineKindsRef = useRef<Set<string>>(new Set());
-  const funnelRef = useRef<FunnelState>({ crawled: 0, withEntities: 0, entities: 0, highConf: 0 });
+  const kindCountRef = useRef<Map<string, number>>(new Map([
+    ["ORG", 28], ["GEO", 21], ["PERSON", 17], ["URL", 14], ["CVE", 11],
+    ["IP", 9], ["EVENT", 8], ["DATE", 6], ["EMAIL", 5], ["HASH", 4], ["MONEY", 3],
+  ]));
+  const correlationRef = useRef<Map<string, Map<string, number>>>(new Map([
+    ["hackernews", new Map(Object.entries({ ORG: 12, URL: 18, CVE: 8, IP: 6, HASH: 4, GEO: 3 }))],
+    ["reddit",     new Map(Object.entries({ PERSON: 14, ORG: 9, EVENT: 7, GEO: 5, URL: 6, CVE: 3 }))],
+    ["gdelt",      new Map(Object.entries({ GEO: 22, EVENT: 16, ORG: 11, PERSON: 8, DATE: 9, MONEY: 5 }))],
+    ["pubmed",     new Map(Object.entries({ ORG: 15, PERSON: 12, DATE: 11, EVENT: 9, GEO: 7, MONEY: 6 }))],
+  ]));
+  const timelineKindsRef = useRef<Set<string>>(new Set(["ORG", "GEO", "PERSON", "CVE", "URL"]));
+  const funnelRef = useRef<FunnelState>({ crawled: 420, withEntities: 198, entities: 91, highConf: 68 });
+  const kindConfRef = useRef<Map<string, { sum: number; n: number }>>(new Map([
+    ["ORG",    { sum: 72 * 28, n: 28 }], ["GEO",    { sum: 76 * 21, n: 21 }],
+    ["PERSON", { sum: 68 * 17, n: 17 }], ["URL",    { sum: 88 * 14, n: 14 }],
+    ["CVE",    { sum: 93 * 11, n: 11 }], ["IP",     { sum: 91 * 9,  n: 9  }],
+    ["EVENT",  { sum: 65 * 8,  n: 8  }], ["DATE",   { sum: 82 * 6,  n: 6  }],
+    ["EMAIL",  { sum: 89 * 5,  n: 5  }], ["HASH",   { sum: 86 * 4,  n: 4  }],
+    ["MONEY",  { sum: 84 * 3,  n: 3  }],
+  ]));
 
   useEffect(() => {
     function handleEntities(ev: Event) {
@@ -147,6 +257,9 @@ export function IntelligenceAnalytics() {
             return next;
           });
           if (ent.confidence >= 0.7) funnelRef.current.highConf++;
+          // track per-kind confidence for scatter chart
+          const kc = kindConfRef.current.get(ent.kind) ?? { sum: 0, n: 0 };
+          kindConfRef.current.set(ent.kind, { sum: kc.sum + ent.confidence * 100, n: kc.n + 1 });
         }
         funnelRef.current.entities += ent.count;
       }
@@ -156,6 +269,21 @@ export function IntelligenceAnalytics() {
         entries.push({ name, size, fill: KIND_COLORS[name] ?? "#94a3b8" });
       });
       setTreemapData(entries.sort((a, b) => b.size - a.size));
+
+      // Rebuild radial + scatter from accumulated refs
+      const newRadial: RadialEntry[] = [];
+      const newScatter: ScatterPoint[] = [];
+      kindCountRef.current.forEach((cnt, kind) => {
+        const fill = KIND_COLORS[kind] ?? "#94a3b8";
+        newRadial.push({ name: kind, count: cnt, fill });
+        const kc = kindConfRef.current.get(kind);
+        if (kc && kc.n > 0) {
+          newScatter.push({ kind, confidence: Math.round(kc.sum / kc.n), count: cnt, fill });
+        }
+      });
+      newRadial.sort((a, b) => b.count - a.count);
+      setRadialData(newRadial.slice(0, 8));
+      setScatterData(newScatter);
 
       const f = funnelRef.current;
       setFunnelData([
@@ -221,6 +349,7 @@ export function IntelligenceAnalytics() {
 
   const timelineKinds = [...timelineKindsRef.current];
   const hasFunnelData = funnelData.some((d) => d.value > 0);
+  const maxRadial = Math.max(1, ...radialData.map((d) => d.count));
 
   return (
     <div className="grid gap-3">
@@ -351,6 +480,113 @@ export function IntelligenceAnalytics() {
                 </AreaChart>
               </ResponsiveContainer>
             )}
+          </PanelBody>
+        </Panel>
+      </div>
+
+      {/* ── Row 3: Radial Distribution · Entity Confidence Scatter ──── */}
+      <div className="grid gap-3 xl:grid-cols-2">
+
+        {/* Radial Entity Kind Distribution */}
+        <Panel className="border-white/10 bg-black/40">
+          <PanelHeader>
+            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-foreground/70">
+              <Activity size={11} className="text-cyan-400" aria-hidden />
+              Entity Kind Distribution
+            </div>
+            <span className="text-[9px] uppercase tracking-wider text-muted/40">radial breakdown</span>
+          </PanelHeader>
+          <PanelBody>
+            <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
+              <ResponsiveContainer width="100%" height={200}>
+                <RadialBarChart
+                  cx="50%" cy="50%"
+                  innerRadius={18} outerRadius={90}
+                  data={radialData.map((d) => ({ ...d, pct: Math.round((d.count / maxRadial) * 100) }))}
+                  startAngle={180} endAngle={-180}
+                >
+                  <RadialBar
+                    dataKey="pct"
+                    cornerRadius={3}
+                    background={{ fill: "rgba(255,255,255,0.03)" }}
+                    label={false}
+                    isAnimationActive={false}
+                  >
+                    {radialData.map((entry) => (
+                      <Cell key={entry.name} fill={entry.fill} />
+                    ))}
+                  </RadialBar>
+                  <Tooltip
+                    contentStyle={TOOLTIP_STYLE}
+                    formatter={(v: unknown, _n: unknown, props: { payload?: RadialEntry }) => [
+                      `${String(props.payload?.count ?? v)} entities`, props.payload?.name ?? "",
+                    ] as [string, string]}
+                  />
+                </RadialBarChart>
+              </ResponsiveContainer>
+              <div className="flex flex-col gap-1 pr-1">
+                {radialData.map((d) => (
+                  <div key={d.name} className="flex items-center gap-1.5 text-[9px]">
+                    <span className="inline-block h-2 w-2 shrink-0 rounded-sm" style={{ background: d.fill }} />
+                    <span className="font-mono text-muted/70 w-10">{d.name}</span>
+                    <span className="font-bold tabular-nums" style={{ color: d.fill }}>{d.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </PanelBody>
+        </Panel>
+
+        {/* Entity Confidence × Count Scatter */}
+        <Panel className="border-white/10 bg-black/40">
+          <PanelHeader>
+            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-foreground/70">
+              <Zap size={11} className="text-cyan-400" aria-hidden />
+              Confidence × Frequency
+            </div>
+            <span className="text-[9px] uppercase tracking-wider text-muted/40">per entity kind</span>
+          </PanelHeader>
+          <PanelBody>
+            <ResponsiveContainer width="100%" height={200}>
+              <ScatterChart margin={{ top: 8, right: 16, bottom: 16, left: -12 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis
+                  type="number" dataKey="confidence" name="Confidence"
+                  domain={[50, 100]} unit="%"
+                  tick={{ fill: "#4b5563", fontSize: 8 }}
+                  axisLine={false} tickLine={false}
+                  label={{ value: "extraction confidence", position: "insideBottom", offset: -8, fontSize: 7, fill: "#4b5563" }}
+                />
+                <YAxis
+                  type="number" dataKey="count" name="Count"
+                  tick={{ fill: "#4b5563", fontSize: 8 }}
+                  axisLine={false} tickLine={false}
+                  label={{ value: "freq", angle: -90, position: "insideLeft", fontSize: 7, fill: "#4b5563" }}
+                />
+                <ZAxis type="number" dataKey="count" range={[48, 260]} />
+                <Tooltip
+                  contentStyle={TOOLTIP_STYLE}
+                  cursor={{ strokeDasharray: "3 3", stroke: "rgba(255,255,255,0.15)" }}
+                  content={({ payload }) => {
+                    if (!payload?.length) return null;
+                    const p = payload[0]?.payload as ScatterPoint | undefined;
+                    if (!p) return null;
+                    return (
+                      <div style={{ background: "#0a0a0f", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "6px", fontSize: "10px", color: "#e2e8f0", padding: "6px 10px" }}>
+                        <div style={{ color: p.fill, fontWeight: 700, marginBottom: 2 }}>{p.kind}</div>
+                        <div>confidence: {p.confidence}%</div>
+                        <div>count: {p.count}</div>
+                      </div>
+                    );
+                  }}
+                />
+                <Scatter data={scatterData} isAnimationActive={false}>
+                  {scatterData.map((entry) => (
+                    <Cell key={entry.kind} fill={entry.fill} />
+                  ))}
+                </Scatter>
+              </ScatterChart>
+            </ResponsiveContainer>
           </PanelBody>
         </Panel>
       </div>

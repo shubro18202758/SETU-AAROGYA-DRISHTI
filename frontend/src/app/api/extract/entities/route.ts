@@ -284,6 +284,18 @@ function extractHeuristicEntities(text: string, query?: string) {
     }
     return a.value.localeCompare(b.value);
   });
+
+  // Assign deterministic confidence scores so downstream charts (Confidence
+  // Spectrum, Threat Radar, Scatter) work even when Qwen/Ollama is offline.
+  // Regex-exact kinds score higher; inferred proper-noun kinds score lower.
+  const KIND_CONF: Partial<Record<EntityKind, number>> = {
+    CVE: 0.93, IP: 0.91, EMAIL: 0.89, URL: 0.88, HASH: 0.86,
+    MONEY: 0.84, DATE: 0.82, GEO: 0.76, ORG: 0.72, PERSON: 0.68, EVENT: 0.65,
+  };
+  for (const ent of entities) {
+    const base = KIND_CONF[ent.kind] ?? 0.70;
+    ent.confidence = Math.min(0.97, base + Math.min(0.06, ent.count * 0.01));
+  }
   const counts = entities.reduce<Record<string, number>>((acc, entity) => {
     acc[entity.kind] = (acc[entity.kind] ?? 0) + 1;
     return acc;

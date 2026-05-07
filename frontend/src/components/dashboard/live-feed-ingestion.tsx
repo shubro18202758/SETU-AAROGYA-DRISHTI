@@ -288,7 +288,7 @@ export function LiveFeedIngestion({ onPromote }: LiveFeedIngestionProps) {
       }
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("osint:feed-pulse", {
-          detail: { source, items: sourceItems.length, entities: list.length, ok: true, query: activeQuery },
+          detail: { source, items: sourceItems.length, entities: list, ok: true, query: activeQuery },
         }));
       }
     } catch (err) {
@@ -751,9 +751,9 @@ export function LiveFeedIngestion({ onPromote }: LiveFeedIngestionProps) {
               )}>
                 {extractionRuntime.fallback
                   ? entities.length > 0
-                    ? `AI core: ${extractionRuntime.engine} · ${entities.length} entities extracted (Qwen offline)`
-                    : `AI core: extraction failed · ${extractionRuntime.fallbackReason ?? "Qwen unavailable"}`
-                  : `AI core: ${extractionRuntime.model} · Qwen primary`}
+                    ? `Edge-NLP active · ${entities.length} entities extracted`
+                    : `Extraction engine unavailable · ${extractionRuntime.fallbackReason ?? "check LLM endpoint"}`
+                  : `Neural primary · ${entities.length} entities · ${extractionRuntime.model}`}
               </div>
             ) : null}
             {/* Entity type distribution — pie + radial breakdown */}

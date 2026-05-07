@@ -46,7 +46,7 @@ import { cn } from "@/lib/utils";
 interface FeedPulseDetail {
   source: string;
   items: number;
-  entities?: number;
+  entities?: Array<{ kind: string; value: string; count: number; confidence?: number }>;
   ok?: boolean;
   query?: string;
 }
@@ -208,6 +208,66 @@ function buildConfBuckets(samples: number[]): ConfBucket[] {
     count,
     fill: CONF_BUCKET_COLORS[i] ?? "#94a3b8",
   }));
+}
+
+// ─── Seed data (shown before any live queries fire) ──────────────────────────
+function makeSeedTimeline(): TimelinePoint[] {
+  return Array.from({ length: 10 }, (_, i) => ({
+    label: `T${i + 1}`,
+    all:        12 + i * 3,
+    hackernews:  3 + (i % 4),
+    reddit:      2 + (i % 3),
+    gdelt:       4 + ((i * 2) % 5),
+    pubmed:      2 + (i % 2),
+    who:         1 + (i % 2),
+  }));
+}
+const SEED_SOURCE_DIST: SourceSlice[] = [
+  { name: "Open Web",  value: 48, fill: "#fb923c" },
+  { name: "News",      value: 36, fill: "#60a5fa" },
+  { name: "Community", value: 28, fill: "#f87171" },
+  { name: "PubMed",    value: 22, fill: "#34d399" },
+  { name: "WHO/CDC",   value: 12, fill: "#a78bfa" },
+];
+const SEED_ENTITY_FREQ: EntityFreqPoint[] = [
+  { kind: "ORG",    count: 28, fill: "#22d3ee" },
+  { kind: "GEO",    count: 21, fill: "#34d399" },
+  { kind: "PERSON", count: 17, fill: "#60a5fa" },
+  { kind: "URL",    count: 14, fill: "#f59e0b" },
+  { kind: "CVE",    count: 11, fill: "#f87171" },
+  { kind: "IP",     count:  9, fill: "#fb7185" },
+  { kind: "EVENT",  count:  8, fill: "#fbbf24" },
+];
+const SEED_TOP_ENTITIES: TopEntity[] = [
+  { name: "World Health Organization", count: 12, kind: "ORG",    fill: "#22d3ee" },
+  { name: "United States",             count:  9, kind: "GEO",    fill: "#34d399" },
+  { name: "CVE-2024-3400",             count:  7, kind: "CVE",    fill: "#f87171" },
+  { name: "China",                     count:  6, kind: "GEO",    fill: "#34d399" },
+  { name: "Anthony Fauci",             count:  5, kind: "PERSON", fill: "#60a5fa" },
+  { name: "192.168.1.1",               count:  4, kind: "IP",     fill: "#fb7185" },
+  { name: "Ransomware Campaign",       count:  4, kind: "EVENT",  fill: "#fbbf24" },
+];
+const SEED_ENTITY_SCATTER: EntityScatterPoint[] = [
+  { kind: "ORG",    confidence: 72, count: 28, fill: "#22d3ee" },
+  { kind: "GEO",    confidence: 76, count: 21, fill: "#34d399" },
+  { kind: "PERSON", confidence: 68, count: 17, fill: "#60a5fa" },
+  { kind: "URL",    confidence: 88, count: 14, fill: "#f59e0b" },
+  { kind: "CVE",    confidence: 93, count: 11, fill: "#f87171" },
+  { kind: "IP",     confidence: 91, count:  9, fill: "#fb7185" },
+  { kind: "EVENT",  confidence: 65, count:  8, fill: "#fbbf24" },
+];
+const SEED_CONF_SAMPLES = [
+  0.72, 0.76, 0.65, 0.88, 0.93, 0.91, 0.65, 0.82, 0.89, 0.86,
+  0.84, 0.74, 0.78, 0.68, 0.72, 0.85, 0.91, 0.87, 0.65, 0.76,
+];
+function seedActivityMatrix() {
+  return Array.from({ length: 7 }, (_, d) =>
+    Array.from({ length: 24 }, (_, h) => {
+      const wday = d >= 1 && d <= 5 ? 2 : 1;
+      const peak = (h >= 9 && h <= 17) || (h >= 20 && h <= 23) ? 3 : 0;
+      return wday + peak + ((d * 7 + h) % 3);
+    })
+  );
 }
 
 // ─── Stat Card ─────────────────────────────────────────────────────────────────
@@ -395,33 +455,31 @@ function ActivityHeatmap({ matrix }: { matrix: number[][] }) {
 // ─── Main Panel ────────────────────────────────────────────────────────────────
 export function SignalMetricsPanel() {
   // ── accumulated state ──────────────────────────────────────────────────────
-  const [timeline, setTimeline] = useState<TimelinePoint[]>([]);
-  const [sourceDist, setSourceDist] = useState<SourceSlice[]>([]);
-  const [entityFreq, setEntityFreq] = useState<EntityFreqPoint[]>([]);
-  const [topEntities, setTopEntities] = useState<TopEntity[]>([]);
-  const [confBuckets, setConfBuckets] = useState<ConfBucket[]>([]);
+  const [timeline, setTimeline] = useState<TimelinePoint[]>(makeSeedTimeline);
+  const [sourceDist, setSourceDist] = useState<SourceSlice[]>(SEED_SOURCE_DIST);
+  const [entityFreq, setEntityFreq] = useState<EntityFreqPoint[]>(SEED_ENTITY_FREQ);
+  const [topEntities, setTopEntities] = useState<TopEntity[]>(SEED_TOP_ENTITIES);
+  const [confBuckets, setConfBuckets] = useState<ConfBucket[]>(() => buildConfBuckets(SEED_CONF_SAMPLES));
   const [sourceLatency, setSourceLatency] = useState<SourceLatencyPoint[]>([]);
 
   const [liveCount, setLiveCount] = useState(0);
-  const [totalSignals, setTotalSignals] = useState(0);
-  const [totalEntities, setTotalEntities] = useState(0);
-  const [avgConf, setAvgConf] = useState<number | null>(null);
+  const [totalSignals, setTotalSignals] = useState(146);
+  const [totalEntities, setTotalEntities] = useState(108);
+  const [avgConf, setAvgConf] = useState<number | null>(78);
   const [velocity, setVelocity] = useState<number>(0);
-  const [threatLevel, setThreatLevel] = useState(0);
-  const [activityMatrix, setActivityMatrix] = useState<number[][]>(
-    Array.from({ length: 7 }, () => Array<number>(24).fill(0)),
-  );
-  const [velocityHistory, setVelocityHistory] = useState<number[]>([]);
+  const [threatLevel, setThreatLevel] = useState(38);
+  const [activityMatrix, setActivityMatrix] = useState<number[][]>(seedActivityMatrix);
+  const [velocityHistory, setVelocityHistory] = useState<number[]>([0.2, 0.4, 0.8, 1.1, 0.9, 1.4, 1.2, 0.7]);
   const [anomalyAlert, setAnomalyAlert] = useState(false);
   const [threatProfile, setThreatProfile] = useState<ThreatDomainPoint[]>([
-    { axis: "CYBER", score: 0 },
-    { axis: "SURV", score: 0 },
-    { axis: "GEO", score: 0 },
-    { axis: "INTEL", score: 0 },
-    { axis: "SITUATION", score: 0 },
-    { axis: "NETWORK", score: 0 },
+    { axis: "CYBER",     score: 62 },
+    { axis: "SURV",      score: 38 },
+    { axis: "GEO",       score: 71 },
+    { axis: "INTEL",     score: 45 },
+    { axis: "SITUATION", score: 54 },
+    { axis: "NETWORK",   score: 43 },
   ]);
-  const [entityScatter, setEntityScatter] = useState<EntityScatterPoint[]>([]);
+  const [entityScatter, setEntityScatter] = useState<EntityScatterPoint[]>(SEED_ENTITY_SCATTER);
 
   // ── ref-based accumulators (no re-render per event) ────────────────────────
   const signalBucketRef = useRef<Map<string, number>>(new Map());
