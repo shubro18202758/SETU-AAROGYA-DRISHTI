@@ -1,0 +1,1 @@
+"""Normalizer worker tests."""

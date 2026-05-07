@@ -1,0 +1,88 @@
+{
+  "name": "dense-saas",
+  "description": "Code-owned compact UI primitives for intelligence dashboards, admin panels, and analyst operations consoles.",
+  "items": [
+    {
+      "name": "button",
+      "type": "registry:ui",
+      "files": ["src/components/ui/button.tsx"]
+    },
+    {
+      "name": "input",
+      "type": "registry:ui",
+      "files": ["src/components/ui/input.tsx"]
+    },
+    {
+      "name": "panel",
+      "type": "registry:ui",
+      "files": ["src/components/ui/panel.tsx"]
+    },
+    {
+      "name": "progress",
+      "type": "registry:ui",
+      "files": ["src/components/ui/progress.tsx"]
+    },
+    {
+      "name": "status-pill",
+      "type": "registry:ui",
+      "files": ["src/components/ui/status-pill.tsx"]
+    },
+    {
+      "name": "live-signals",
+      "type": "registry:block",
+      "files": [
+        "src/components/dashboard/live-signals.tsx",
+        "src/hooks/use-live-event-signals.ts",
+        "src/app/api/intelligence/events/[eventId]/entities/route.ts"
+      ]
+    },
+    {
+      "name": "osint-dashboard",
+      "type": "registry:block",
+      "files": [
+        "src/components/dashboard/osint-dashboard.tsx",
+        "src/hooks/use-system-status.ts",
+        "src/hooks/use-geo-graph-summary.ts",
+        "src/app/api/system/status/route.ts"
+      ]
+    },
+    {
+      "name": "osint-shell",
+      "type": "registry:block",
+      "files": [
+        "src/components/layout/osint-shell.tsx",
+        "src/components/layout/sidebar.tsx",
+        "src/components/layout/command-palette.tsx"
+      ]
+    },
+    {
+      "name": "osint-workspaces",
+      "type": "registry:block",
+      "files": [
+        "src/components/workspaces/osint-workspaces.tsx",
+        "src/app/graphrag/page.tsx",
+        "src/app/streams/page.tsx",
+        "src/app/alerts/page.tsx",
+        "src/app/entities/page.tsx",
+        "src/app/database/page.tsx",
+        "src/app/reports/page.tsx",
+        "src/app/settings/page.tsx"
+      ]
+    },
+    {
+      "name": "intelligence-globe",
+      "type": "registry:block",
+      "files": [
+        "src/components/dashboard/globe/intelligence-globe-panel.tsx",
+        "src/components/dashboard/globe/intelligence-globe.tsx",
+        "src/lib/geo-coordinates.ts",
+        "src/app/api/intelligence/geo/route.ts"
+      ]
+    },
+    {
+      "name": "command-palette",
+      "type": "registry:block",
+      "files": ["src/components/layout/command-palette.tsx"]
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "_meta": {
+    "code_system": "ICD-10",
+    "description": "Hand-curated open subset of WHO ICD-10 codes used by SETU AAROGYA DRISHTI for IDSP P-form drafting and ICSR cross-coding. Codes are public WHO ICD-10 (2019) entries.",
+    "version": "0.1.0",
+    "license": "Curation: CC-BY-SA-4.0. Underlying ICD-10 codes are © World Health Organization, used here under WHO permitted uses for research/demo.",
+    "source": "WHO ICD-10 (2019 edition) public chapter listings.",
+    "languages_curated": ["en"],
+    "intended_use": "Surface-form recognition + canonical disease coding inside SETU IDSP P-form exporter. Strictly demo / research."
+  },
+  "concepts": [
+    {
+      "code": "N17.9",
+      "preferred_term": "Acute kidney failure, unspecified",
+      "synonyms": ["acute kidney injury", "aki", "acute renal failure"]
+    },
+    {
+      "code": "N17.0",
+      "preferred_term": "Acute kidney failure with tubular necrosis",
+      "synonyms": ["atn", "acute tubular necrosis"]
+    },
+    {
+      "code": "N17.8",
+      "preferred_term": "Other acute kidney failure",
+      "synonyms": []
+    },
+    {
+      "code": "N18.9",
+      "preferred_term": "Chronic kidney disease, unspecified",
+      "synonyms": ["ckd"]
+    },
+    {
+      "code": "N19",
+      "preferred_term": "Unspecified kidney failure",
+      "synonyms": ["renal failure unspecified"]
+    },
+    {
+      "code": "R34",
+      "preferred_term": "Anuria and oliguria",
+      "synonyms": ["oliguria", "anuria", "decreased urine output"]
+    },
+    {
+      "code": "R50.9",
+      "preferred_term": "Fever, unspecified",
+      "synonyms": ["pyrexia", "fever"]
+    },
+    {
+      "code": "R11.10",
+      "preferred_term": "Vomiting, unspecified",
+      "synonyms": ["vomiting", "emesis"]
+    },
+    {
+      "code": "A09",
+      "preferred_term": "Infectious gastroenteritis and colitis, unspecified",
+      "synonyms": ["acute gastroenteritis", "diarrhoeal disease"]
+    },
+    {
+      "code": "R21",
+      "preferred_term": "Rash and other nonspecific skin eruption",
+      "synonyms": ["rash", "skin eruption"]
+    },
+    {
+      "code": "R60.9",
+      "preferred_term": "Edema, unspecified",
+      "synonyms": ["oedema", "swelling"]
+    },
+    {
+      "code": "R06.0",
+      "preferred_term": "Dyspnoea",
+      "synonyms": ["dyspnea", "shortness of breath", "breathlessness"]
+    },
+    {
+      "code": "K72.0",
+      "preferred_term": "Acute and subacute hepatic failure",
+      "synonyms": ["acute liver failure", "fulminant hepatic failure"]
+    },
+    {
+      "code": "R17",
+      "preferred_term": "Unspecified jaundice",
+      "synonyms": ["jaundice", "icterus"]
+    },
+    {
+      "code": "T78.2",
+      "preferred_term": "Anaphylactic shock, unspecified",
+      "synonyms": ["anaphylaxis", "anaphylactic reaction"]
+    },
+    {
+      "code": "T88.7",
+      "preferred_term": "Unspecified adverse effect of drug or medicament",
+      "synonyms": ["adverse drug reaction", "adr", "adverse drug event"]
+    },
+    {
+      "code": "T50.905A",
+      "preferred_term": "Adverse effect of unspecified drugs, medicaments and biological substances, initial encounter",
+      "synonyms": ["adverse effect of unspecified drug"]
+    },
+    {
+      "code": "T65.891A",
+      "preferred_term": "Toxic effect of other specified substances, accidental, initial encounter",
+      "synonyms": ["diethylene glycol poisoning", "deg toxicity", "ethylene glycol contamination"]
+    },
+    {
+      "code": "J18.9",
+      "preferred_term": "Pneumonia, unspecified organism",
+      "synonyms": ["pneumonia"]
+    },
+    {
+      "code": "J06.9",
+      "preferred_term": "Acute upper respiratory infection, unspecified",
+      "synonyms": ["uri", "common cold", "uri unspecified"]
+    },
+    {
+      "code": "R05",
+      "preferred_term": "Cough",
+      "synonyms": []
+    },
+    {
+      "code": "R51",
+      "preferred_term": "Headache",
+      "synonyms": []
+    },
+    {
+      "code": "R10.4",
+      "preferred_term": "Other and unspecified abdominal pain",
+      "synonyms": ["abdominal pain", "stomach pain", "belly pain"]
+    },
+    {
+      "code": "A90",
+      "preferred_term": "Dengue fever [classical dengue]",
+      "synonyms": ["dengue", "dengue fever"]
+    },
+    {
+      "code": "A91",
+      "preferred_term": "Dengue haemorrhagic fever",
+      "synonyms": ["dhf"]
+    },
+    {
+      "code": "A01.0",
+      "preferred_term": "Typhoid fever",
+      "synonyms": ["typhoid", "enteric fever"]
+    },
+    {
+      "code": "B15-B19",
+      "preferred_term": "Viral hepatitis (range)",
+      "synonyms": ["hepatitis", "viral hepatitis"]
+    }
+  ]
+}

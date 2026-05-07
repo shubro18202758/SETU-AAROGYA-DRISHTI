@@ -1,0 +1,229 @@
+@import "tailwindcss";
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+@theme {
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --color-background: #060606;
+  --color-foreground: #f0f0f0;
+  --color-muted: #909090;
+  --color-panel: #0e0e0e;
+  --color-panel-strong: #1a1a1a;
+  --color-border: #404040;
+  --color-accent-cyan: #f0f0f2;
+  --color-accent-amber: #c8c8c8;
+  --color-accent-blue: #e0e0e0;
+  --color-accent-rose: #f8f8f8;
+  --color-accent-green: #ebebeb;
+}
+
+:root {
+  color-scheme: dark;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: #040404;
+}
+
+body {
+  position: relative;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background: #040404;
+  text-rendering: geometricPrecision;
+}
+
+/* ─── OSINT Neutral Backdrop ────────────────────────────────────────────────
+   Three-zone composition — black, grey, and white/silver in equal visual
+   proportion. Zone boundaries:
+     • BLACK  — deep edge vignettes + bottom fade  (#030303 – #181818)
+     • GREY   — broad diagonal mid-tone mass        (#484848 – #747474)
+     • SILVER — primary diagonal slash + top bloom  (rgba white 0.28–0.35)
+   ──────────────────────────────────────────────────────────────────────────── */
+.osint-neutral-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background:
+    /* BLACK zone — left + right edge vignettes */
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.82) 0%,
+      rgba(0, 0, 0, 0.42) 12%,
+      transparent 28%,
+      transparent 72%,
+      rgba(0, 0, 0, 0.42) 88%,
+      rgba(0, 0, 0, 0.82) 100%
+    ),
+    /* BLACK zone — bottom fade */
+    linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.90) 0%,
+      rgba(0, 0, 0, 0.50) 10%,
+      transparent 32%,
+      transparent 100%
+    ),
+    /* SILVER zone — primary diagonal slash */
+    linear-gradient(
+      118deg,
+      transparent 22%,
+      rgba(255, 255, 255, 0) 28%,
+      rgba(180, 180, 180, 0.09) 34%,
+      rgba(255, 255, 255, 0.14) 40%,
+      rgba(170, 170, 170, 0.09) 46%,
+      rgba(255, 255, 255, 0) 54%,
+      transparent 100%
+    ),
+    /* SILVER zone — top radial bloom */
+    radial-gradient(
+      ellipse 105% 44% at 50% -3%,
+      rgba(100, 100, 100, 0.12) 0%,
+      rgba(50, 50, 50, 0.06) 46%,
+      transparent 72%
+    ),
+    /* GREY zone — broad diagonal structural mass */
+    linear-gradient(
+      148deg,
+      #040404 0%,
+      #141414 9%,
+      #2e2e2e 18%,
+      #4e4e4e 28%,
+      #666666 36%,
+      #747474 42%,
+      #6c6c6c 48%,
+      #545454 54%,
+      #3a3a3a 62%,
+      #1e1e1e 73%,
+      #0a0a0a 85%,
+      #030303 100%
+    );
+}
+
+.osint-neutral-backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* Fine grid lines + secondary lower-right diagonal */
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.022) 0 1px, transparent 1px 52px),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.016) 0 1px, transparent 1px 52px),
+    linear-gradient(
+      300deg,
+      transparent 32%,
+      rgba(150, 150, 150, 0.10) 42%,
+      rgba(230, 230, 230, 0.08) 50%,
+      rgba(100, 100, 100, 0.08) 58%,
+      transparent 68%
+    );
+  mix-blend-mode: screen;
+  opacity: 0.65;
+}
+
+.osint-neutral-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* Diagonal micro-texture for depth */
+  background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 12px);
+  opacity: 0.5;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #505050;
+  border-radius: 8px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.confidence-progress {
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  appearance: none;
+  border: 0;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.confidence-progress::-webkit-progress-bar {
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.confidence-progress::-webkit-progress-value {
+  border-radius: 2px;
+  background: var(--confidence-progress-color);
+  transition: width 200ms ease;
+}
+
+.confidence-progress::-moz-progress-bar {
+  border-radius: 2px;
+  background: var(--confidence-progress-color);
+}
+
+.confidence-progress-green {
+  --confidence-progress-color: var(--color-accent-green);
+}
+
+.confidence-progress-cyan {
+  --confidence-progress-color: var(--color-accent-cyan);
+}
+
+.confidence-progress-amber {
+  --confidence-progress-color: var(--color-accent-amber);
+}
+
+.confidence-progress-rose {
+  --confidence-progress-color: var(--color-accent-rose);
+}
+
+.osint-globe-map {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0 22%, transparent 46%),
+    radial-gradient(circle at 52% 48%, rgba(44, 44, 44, 0.88) 0 38%, rgba(13, 13, 13, 0.96) 66%, rgba(5, 5, 5, 1) 100%),
+    var(--color-background);
+}
+
+.osint-globe-map .maplibregl-canvas {
+  outline: none;
+}
+
+.osint-globe-map .maplibregl-ctrl-group {
+  border: 1px solid var(--color-border);
+  background: rgba(16, 16, 16, 0.92);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.28);
+}
+
+.osint-globe-map .maplibregl-ctrl button {
+  background: transparent;
+}
+
+.osint-globe-map .maplibregl-ctrl button:hover {
+  background: rgba(255, 255, 255, 0.06);
+}

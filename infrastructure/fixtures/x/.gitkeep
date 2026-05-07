@@ -1,0 +1,5 @@
+# X (Twitter) replay fixtures
+#
+# Place pre-collected X JSON snapshots here. The `x_replay_fixture` connector
+# tails this directory in deterministic order — useful for offline demos and
+# CI without paying for the X API.

@@ -1,0 +1,48 @@
+{
+  "_meta": {
+    "description": "Seed medical vocabulary for SETU AAROGYA DRISHTI PoC. Hand-curated subset of public terms; NOT a substitute for licensed SNOMED-CT / WHO-DRUG.",
+    "version": "0.1.0",
+    "license": "CC-BY-SA-4.0 (curation); upstream sources retain their own licenses.",
+    "languages": ["en", "hi", "ta", "te", "kn"]
+  },
+  "drugs": [
+    {"surface": "coldrif", "code_system": "WHO-DRUG", "code": "WD-COLDRIF-LOCAL", "synonyms": ["cold rif", "कोल्डरिफ", "cold-rif syrup"]},
+    {"surface": "paracetamol", "code_system": "WHO-DRUG", "code": "N02BE01", "synonyms": ["acetaminophen", "crocin", "calpol", "पैरासिटामोल"]},
+    {"surface": "ibuprofen", "code_system": "WHO-DRUG", "code": "M01AE01", "synonyms": ["brufen", "combiflam"]},
+    {"surface": "azithromycin", "code_system": "WHO-DRUG", "code": "J01FA10", "synonyms": ["azithral", "azee"]},
+    {"surface": "amoxicillin", "code_system": "WHO-DRUG", "code": "J01CA04", "synonyms": ["mox", "moxikind"]},
+    {"surface": "diethylene glycol", "code_system": "WHO-DRUG", "code": "DEG-CONTAM", "synonyms": ["deg", "ethylene glycol contaminant"]}
+  ],
+  "symptoms": [
+    {"surface": "fever", "code_system": "SNOMED-CT", "code": "386661006", "synonyms": ["pyrexia", "बुखार", "காய்ச்சல்", "జ్వరం", "ಜ್ವರ"]},
+    {"surface": "vomiting", "code_system": "SNOMED-CT", "code": "422400008", "synonyms": ["throwing up", "उल्टी", "வாந்தி"]},
+    {"surface": "diarrhea", "code_system": "SNOMED-CT", "code": "62315008", "synonyms": ["loose motions", "दस्त"]},
+    {"surface": "rash", "code_system": "SNOMED-CT", "code": "271807003", "synonyms": ["skin rash", "चकत्ते"]},
+    {"surface": "swelling", "code_system": "SNOMED-CT", "code": "65124004", "synonyms": ["edema", "सूजन"]},
+    {"surface": "shortness of breath", "code_system": "SNOMED-CT", "code": "267036007", "synonyms": ["dyspnea", "breathlessness", "साँस फूलना"]},
+    {"surface": "decreased urine output", "code_system": "SNOMED-CT", "code": "26241007", "synonyms": ["oliguria", "no urine", "less peeing"]}
+  ],
+  "conditions": [
+    {"surface": "acute kidney injury", "code_system": "ICD-11", "code": "GB60", "synonyms": ["aki", "kidney failure", "renal failure"]},
+    {"surface": "anaphylaxis", "code_system": "ICD-11", "code": "4A84", "synonyms": ["allergic shock", "एनाफिलैक्सिस"]},
+    {"surface": "dengue fever", "code_system": "ICD-11", "code": "1D2Y", "synonyms": ["dengue", "डेंगू"]},
+    {"surface": "typhoid", "code_system": "ICD-11", "code": "1A07", "synonyms": ["enteric fever", "टाइफाइड"]},
+    {"surface": "hepatitis", "code_system": "ICD-11", "code": "1E50", "synonyms": ["jaundice", "पीलिया"]}
+  ],
+  "adverse_events": [
+    {"surface": "side effect", "synonyms": ["adverse reaction", "bad reaction", "दुष्प्रभाव"]},
+    {"surface": "allergic reaction", "synonyms": ["allergy", "एलर्जी"]},
+    {"surface": "death", "synonyms": ["fatality", "मौत", "मृत्यु"]}
+  ],
+  "facilities": [
+    {"surface": "hospital", "synonyms": ["clinic", "अस्पताल"]},
+    {"surface": "primary health centre", "synonyms": ["phc", "chc"]},
+    {"surface": "pharmacy", "synonyms": ["chemist", "मेडिकल स्टोर"]}
+  ],
+  "demographics": [
+    {"surface": "child", "synonyms": ["kid", "minor", "बच्चा"]},
+    {"surface": "infant", "synonyms": ["baby", "शिशु"]},
+    {"surface": "elderly", "synonyms": ["senior citizen", "बुज़ुर्ग"]},
+    {"surface": "pregnant", "synonyms": ["गर्भवती"]}
+  ]
+}

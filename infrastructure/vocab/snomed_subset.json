@@ -1,0 +1,138 @@
+{
+  "_meta": {
+    "code_system": "SNOMED-CT",
+    "description": "Hand-curated open subset of SNOMED-CT concepts relevant to the SETU AAROGYA DRISHTI Coldrif/DEG/AKI demo and broader paediatric AKI / cough-syrup adverse-event surveillance. NOT a substitute for a licensed SNOMED-CT distribution; concept identifiers are public and used here under fair-use for research/demo purposes only.",
+    "version": "0.1.0",
+    "license": "Curation: CC-BY-SA-4.0. Underlying SNOMED-CT codes are property of SNOMED International and require an affiliate licence for production use.",
+    "source": "Manually selected from publicly documented SNOMED-CT concept identifiers.",
+    "languages_curated": ["en", "hi", "ta", "te", "kn"],
+    "intended_use": "Surface-form recognition + canonical mapping inside the SETU normalizer. Strictly demo / research."
+  },
+  "concepts": [
+    {
+      "code": "14669001",
+      "preferred_term": "Acute renal failure syndrome",
+      "synonyms": ["acute kidney injury", "aki", "acute renal failure", "arf", "kidney failure (acute)"]
+    },
+    {
+      "code": "236434000",
+      "preferred_term": "Acute kidney injury due to drug",
+      "synonyms": ["drug-induced acute kidney injury", "nephrotoxic injury", "drug nephrotoxicity"]
+    },
+    {
+      "code": "90708001",
+      "preferred_term": "Kidney disease",
+      "synonyms": ["renal disease", "kidney disorder"]
+    },
+    {
+      "code": "26241007",
+      "preferred_term": "Decreased urine output",
+      "synonyms": ["oliguria", "low urine output", "less urination", "no urine", "less peeing"]
+    },
+    {
+      "code": "2472002",
+      "preferred_term": "Anuria",
+      "synonyms": ["no urine output", "absent urine"]
+    },
+    {
+      "code": "386661006",
+      "preferred_term": "Fever",
+      "synonyms": ["pyrexia", "high temperature", "बुखार", "காய்ச்சல்", "జ్వరం", "ಜ್ವರ"]
+    },
+    {
+      "code": "422400008",
+      "preferred_term": "Vomiting",
+      "synonyms": ["throwing up", "emesis", "उल्टी", "வாந்தி", "వాంతి"]
+    },
+    {
+      "code": "62315008",
+      "preferred_term": "Diarrhea",
+      "synonyms": ["loose motions", "loose stools", "दस्त", "வயிற்றுப்போக்கு"]
+    },
+    {
+      "code": "271807003",
+      "preferred_term": "Eruption of skin",
+      "synonyms": ["rash", "skin rash", "चकत्ते", "தோல் தடிப்பு"]
+    },
+    {
+      "code": "65124004",
+      "preferred_term": "Swelling",
+      "synonyms": ["edema", "oedema", "सूजन", "வீக்கம்"]
+    },
+    {
+      "code": "267036007",
+      "preferred_term": "Dyspnea",
+      "synonyms": ["shortness of breath", "breathlessness", "difficulty breathing", "साँस फूलना"]
+    },
+    {
+      "code": "39104002",
+      "preferred_term": "Liver failure",
+      "synonyms": ["hepatic failure", "acute liver failure"]
+    },
+    {
+      "code": "18165001",
+      "preferred_term": "Jaundice",
+      "synonyms": ["icterus", "yellow skin", "पीलिया", "மஞ்சள் காமாலை"]
+    },
+    {
+      "code": "39579001",
+      "preferred_term": "Anaphylaxis",
+      "synonyms": ["anaphylactic reaction", "allergic shock", "एनाफिलैक्सिस"]
+    },
+    {
+      "code": "419620001",
+      "preferred_term": "Death",
+      "synonyms": ["died", "fatality", "मृत्यु", "मौत", "இறப்பு"]
+    },
+    {
+      "code": "67782005",
+      "preferred_term": "Acute respiratory distress syndrome",
+      "synonyms": ["ards", "respiratory distress"]
+    },
+    {
+      "code": "29857009",
+      "preferred_term": "Chest pain",
+      "synonyms": ["chest discomfort", "सीने में दर्द"]
+    },
+    {
+      "code": "21522001",
+      "preferred_term": "Abdominal pain",
+      "synonyms": ["stomach pain", "belly pain", "पेट दर्द", "வயிற்று வலி"]
+    },
+    {
+      "code": "25064002",
+      "preferred_term": "Headache",
+      "synonyms": ["सिरदर्द", "தலைவலி", "తలనొప్పి"]
+    },
+    {
+      "code": "82272006",
+      "preferred_term": "Common cold",
+      "synonyms": ["cold", "उपरी श्वसन संक्रमण"]
+    },
+    {
+      "code": "49727002",
+      "preferred_term": "Cough",
+      "synonyms": ["खाँसी", "இருமல்", "దగ్గు"]
+    },
+    {
+      "code": "84229001",
+      "preferred_term": "Fatigue",
+      "synonyms": ["tiredness", "exhaustion", "थकान"]
+    },
+    {
+      "code": "271737000",
+      "preferred_term": "Anemia",
+      "synonyms": ["anaemia", "low hemoglobin", "ख़ून की कमी"]
+    },
+    {
+      "code": "73211009",
+      "preferred_term": "Diabetes mellitus",
+      "synonyms": ["diabetes", "मधुमेह", "சர்க்கரை நோய்"]
+    },
+    {
+      "code": "38341003",
+      "preferred_term": "Hypertensive disorder",
+      "synonyms": ["hypertension", "high blood pressure", "उच्च रक्तचाप"]
+    }
+  ]
+}

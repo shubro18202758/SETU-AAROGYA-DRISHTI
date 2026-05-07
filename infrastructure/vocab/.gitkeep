@@ -1,0 +1,2 @@
+# Controlled medical vocabularies (SNOMED-CT subset, ICD-11 subset, WHO-DRUG).
+# Curated JSON seed files live here and are loaded by the medical NER node.

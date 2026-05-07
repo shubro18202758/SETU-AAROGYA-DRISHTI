@@ -1,0 +1,149 @@
+{
+  "_meta": {
+    "code_system": "MedDRA",
+    "description": "Hand-curated open subset of MedDRA Preferred Terms (PTs) and a few Lowest Level Terms (LLTs) used by the SETU AAROGYA DRISHTI demo for PvPI ICSR drafting (E2B(R3) reactionmeddrapt). Numeric codes shown are publicly documented MedDRA PT codes used here for research/demo only.",
+    "version": "0.1.0",
+    "license": "Curation: CC-BY-SA-4.0. MedDRA® is a registered trademark of ICH; production use requires a MedDRA MSSO subscription.",
+    "source": "Manually selected from publicly documented MedDRA PT codes.",
+    "languages_curated": ["en"],
+    "intended_use": "Surface-form recognition + reaction coding inside SETU PvPI ICSR exporter. Strictly demo / research.",
+    "warning": "Do NOT submit forms generated from this subset to PvPI/CDSCO without re-coding against a licensed MedDRA dictionary."
+  },
+  "concepts": [
+    {
+      "code": "10069339",
+      "preferred_term": "Acute kidney injury",
+      "synonyms": ["aki", "acute renal failure", "acute renal injury"]
+    },
+    {
+      "code": "10038435",
+      "preferred_term": "Renal failure",
+      "synonyms": ["kidney failure", "renal insufficiency"]
+    },
+    {
+      "code": "10030302",
+      "preferred_term": "Oliguria",
+      "synonyms": ["decreased urine output", "low urine output"]
+    },
+    {
+      "code": "10002757",
+      "preferred_term": "Anuria",
+      "synonyms": ["no urine output"]
+    },
+    {
+      "code": "10016558",
+      "preferred_term": "Fever",
+      "synonyms": ["pyrexia", "elevated temperature"]
+    },
+    {
+      "code": "10047700",
+      "preferred_term": "Vomiting",
+      "synonyms": ["emesis", "throwing up"]
+    },
+    {
+      "code": "10012735",
+      "preferred_term": "Diarrhoea",
+      "synonyms": ["diarrhea", "loose motions", "loose stools"]
+    },
+    {
+      "code": "10037844",
+      "preferred_term": "Rash",
+      "synonyms": ["skin rash", "eruption"]
+    },
+    {
+      "code": "10030113",
+      "preferred_term": "Oedema",
+      "synonyms": ["edema", "swelling"]
+    },
+    {
+      "code": "10013968",
+      "preferred_term": "Dyspnoea",
+      "synonyms": ["dyspnea", "shortness of breath", "breathlessness"]
+    },
+    {
+      "code": "10019663",
+      "preferred_term": "Hepatic failure",
+      "synonyms": ["liver failure", "acute liver failure"]
+    },
+    {
+      "code": "10023126",
+      "preferred_term": "Jaundice",
+      "synonyms": ["icterus", "yellow skin"]
+    },
+    {
+      "code": "10002198",
+      "preferred_term": "Anaphylactic reaction",
+      "synonyms": ["anaphylaxis", "anaphylactic shock"]
+    },
+    {
+      "code": "10011906",
+      "preferred_term": "Death",
+      "synonyms": ["fatal outcome", "died"]
+    },
+    {
+      "code": "10001052",
+      "preferred_term": "Acute respiratory distress syndrome",
+      "synonyms": ["ards"]
+    },
+    {
+      "code": "10008479",
+      "preferred_term": "Chest pain",
+      "synonyms": ["chest discomfort"]
+    },
+    {
+      "code": "10000059",
+      "preferred_term": "Abdominal pain",
+      "synonyms": ["stomach pain", "belly pain"]
+    },
+    {
+      "code": "10019211",
+      "preferred_term": "Headache",
+      "synonyms": ["cephalalgia"]
+    },
+    {
+      "code": "10011224",
+      "preferred_term": "Cough",
+      "synonyms": []
+    },
+    {
+      "code": "10016256",
+      "preferred_term": "Fatigue",
+      "synonyms": ["tiredness", "exhaustion"]
+    },
+    {
+      "code": "10002034",
+      "preferred_term": "Anaemia",
+      "synonyms": ["anemia", "low haemoglobin"]
+    },
+    {
+      "code": "10028813",
+      "preferred_term": "Nausea",
+      "synonyms": []
+    },
+    {
+      "code": "10037660",
+      "preferred_term": "Pruritus",
+      "synonyms": ["itching", "itch"]
+    },
+    {
+      "code": "10009887",
+      "preferred_term": "Convulsion",
+      "synonyms": ["seizure", "fit"]
+    },
+    {
+      "code": "10024264",
+      "preferred_term": "Lethargy",
+      "synonyms": ["sluggishness", "drowsiness"]
+    },
+    {
+      "code": "10005488",
+      "preferred_term": "Blood urea increased",
+      "synonyms": ["raised urea", "elevated bun"]
+    },
+    {
+      "code": "10005481",
+      "preferred_term": "Blood creatinine increased",
+      "synonyms": ["raised creatinine", "elevated serum creatinine"]
+    }
+  ]
+}

@@ -1,0 +1,346 @@
+name: localized-osint
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+x-service-defaults: &service-defaults
+  restart: unless-stopped
+  networks:
+    - osint
+  logging: *default-logging
+
+networks:
+  osint:
+    name: osint-local
+    driver: bridge
+
+volumes:
+  redpanda-data:
+  arcadedb-data:
+  hf-cache:
+  setu-models:
+  setu-fixtures:
+
+services:
+  redpanda:
+    <<: *service-defaults
+    image: docker.redpanda.com/redpandadata/redpanda:latest
+    container_name: osint-redpanda
+    command:
+      - redpanda
+      - start
+      - --smp
+      - "1"
+      - --memory
+      - 1G
+      - --reserve-memory
+      - 0M
+      - --overprovisioned
+      - --node-id
+      - "0"
+      - --check=false
+      - --kafka-addr
+      - internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr
+      - internal://redpanda:9092,external://localhost:19092
+      - --pandaproxy-addr
+      - internal://0.0.0.0:8082,external://0.0.0.0:18082
+      - --advertise-pandaproxy-addr
+      - internal://redpanda:8082,external://localhost:18082
+      - --schema-registry-addr
+      - internal://0.0.0.0:8081,external://0.0.0.0:18081
+      - --mode
+      - dev-container
+    ports:
+      - "19092:19092"
+      - "18081:18081"
+      - "18082:18082"
+    volumes:
+      - redpanda-data:/var/lib/redpanda/data
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    cpus: "2.0"
+    mem_limit: 1536m
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster health | grep -q 'Healthy:. true'"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
+
+  arcadedb:
+    <<: *service-defaults
+    image: arcadedata/arcadedb:latest
+    container_name: osint-arcadedb
+    environment:
+      arcadedb.server.rootPassword: ${ARCADEDB_ROOT_PASSWORD:-change-me-local-only}
+      arcadedb.server.defaultDatabases: osint[${ARCADEDB_ROOT_PASSWORD:-change-me-local-only}]
+      JAVA_OPTS: >-
+        -Xms256m
+        -Xmx768m
+        -XX:+UseG1GC
+        -XX:MaxGCPauseMillis=100
+        -XX:+UseStringDeduplication
+        -XX:+ExitOnOutOfMemoryError
+    ports:
+      - "2480:2480"
+      - "2424:2424"
+    volumes:
+      - arcadedb-data:/home/arcadedb/databases
+    cpus: "1.5"
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "bash -ec 'cat < /dev/null > /dev/tcp/127.0.0.1/2480'"]
+      interval: 20s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  llm:
+    <<: *service-defaults
+    image: ghcr.io/huggingface/text-generation-inference:latest
+    container_name: osint-qwen35-4b-tgi
+    gpus: all
+    ipc: host
+    shm_size: 1gb
+    environment:
+      HUGGING_FACE_HUB_TOKEN: ${HUGGING_FACE_HUB_TOKEN:-}
+      HF_HOME: /data
+      HF_HUB_ENABLE_HF_TRANSFER: "1"
+      TRANSFORMERS_CACHE: /data
+      CUDA_MEMORY_FRACTION: "0.36"
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+    command:
+      - --model-id
+      - Qwen/Qwen3.5-4B
+      - --quantize
+      - bitsandbytes-nf4
+      - --dtype
+      - float16
+      - --num-shard
+      - "1"
+      - --max-input-tokens
+      - "3072"
+      - --max-total-tokens
+      - "4096"
+      - --max-batch-prefill-tokens
+      - "3072"
+      - --max-batch-total-tokens
+      - "4096"
+      - --max-concurrent-requests
+      - "4"
+      - --waiting-served-ratio
+      - "1.1"
+      - --cuda-memory-fraction
+      - "0.36"
+      - --trust-remote-code
+    ports:
+      - "8088:80"
+    volumes:
+      - hf-cache:/data
+    mem_limit: 10g
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 180s
+
+  backend:
+    <<: *service-defaults
+    profiles: ["app"]
+    build:
+      context: ./backend
+    container_name: osint-backend
+    environment:
+      REDPANDA_BROKERS: redpanda:9092
+      ARCADEDB_URL: http://arcadedb:2480
+      ARCADEDB_DATABASE: osint
+      ARCADEDB_USER: root
+      ARCADEDB_PASSWORD: ${ARCADEDB_ROOT_PASSWORD:-change-me-local-only}
+      EVIDENCE_EMBEDDING_DIMENSIONS: ${EVIDENCE_EMBEDDING_DIMENSIONS:-192}
+      EVENT_NOTIFICATION_TOPIC: osint.events.high_confidence
+      LLM_BASE_URL: http://llm:80/v1
+      LLM_MODEL: Qwen/Qwen3.5-4B
+    ports:
+      - "8000:8000"
+    depends_on:
+      redpanda:
+        condition: service_healthy
+      arcadedb:
+        condition: service_healthy
+      llm:
+        condition: service_healthy
+
+  ingest-worker:
+    <<: *service-defaults
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: workers/ingestion/Dockerfile
+    container_name: osint-ingest-worker
+    environment:
+      REDPANDA_BROKERS: redpanda:9092
+      RAW_TOPIC: osint.raw.events
+      MENTIONS_RAW_TOPIC: setu.mentions.raw
+      QUANT_POLARS_MAX_THREADS: ${QUANT_POLARS_MAX_THREADS:-2}
+      POLARS_MAX_THREADS: ${QUANT_POLARS_MAX_THREADS:-2}
+      REDDIT_CLIENT_ID: ${REDDIT_CLIENT_ID:-}
+      REDDIT_CLIENT_SECRET: ${REDDIT_CLIENT_SECRET:-}
+      REDDIT_USER_AGENT: ${REDDIT_USER_AGENT:-setu-aarogya-drishti/0.1}
+      YOUTUBE_COOKIES_PATH: ${YOUTUBE_COOKIES_PATH:-}
+      TELEGRAM_API_ID: ${TELEGRAM_API_ID:-}
+      TELEGRAM_API_HASH: ${TELEGRAM_API_HASH:-}
+      TELEGRAM_SESSION_PATH: ${TELEGRAM_SESSION_PATH:-/fixtures/telegram.session}
+      FIXTURES_DIR: /fixtures
+    volumes:
+      - setu-fixtures:/fixtures
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    cpus: "2.0"
+
+  enrich-worker:
+    <<: *service-defaults
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: workers/enrichment/Dockerfile
+    container_name: osint-enrich-worker
+    environment:
+      REDPANDA_BROKERS: redpanda:9092
+      RAW_TOPIC: osint.raw.events
+      ENRICHED_TOPIC: osint.enriched.events
+      BRAIN_GROUP_ID: ${BRAIN_GROUP_ID:-osint-brain}
+      BRAIN_MAX_EXTRACTION_RETRIES: ${BRAIN_MAX_EXTRACTION_RETRIES:-2}
+      BRAIN_EXTRACTION_TEMPERATURE: ${BRAIN_EXTRACTION_TEMPERATURE:-0.1}
+      BRAIN_LLM_TIMEOUT_SECONDS: ${BRAIN_LLM_TIMEOUT_SECONDS:-30}
+      BRAIN_LLM_MAX_TOKENS: ${BRAIN_LLM_MAX_TOKENS:-2048}
+      LLM_BASE_URL: http://llm:80/v1
+      LLM_MODEL: Qwen/Qwen3.5-4B
+    depends_on:
+      redpanda:
+        condition: service_healthy
+      llm:
+        condition: service_healthy
+
+  normalizer-worker:
+    <<: *service-defaults
+    profiles: ["app", "setu"]
+    build:
+      context: .
+      dockerfile: workers/normalizer/Dockerfile
+    container_name: setu-normalizer-worker
+    environment:
+      REDPANDA_BROKERS: redpanda:9092
+      MENTIONS_RAW_TOPIC: setu.mentions.raw
+      MENTIONS_NORMALIZED_TOPIC: setu.mentions.normalized
+      MENTIONS_MEDICAL_TOPIC: setu.mentions.medical
+      NORMALIZER_GROUP_ID: ${NORMALIZER_GROUP_ID:-setu-normalizer}
+      LLM_BASE_URL: http://llm:80/v1
+      LLM_MODEL: Qwen/Qwen3.5-4B
+      MODELS_CACHE_DIR: /models
+      INDIC_LANG_ID_ENABLED: "true"
+      INDIC_TRANSLATE_ENABLED: "true"
+      PII_REDACTION_ENABLED: "true"
+    volumes:
+      - setu-models:/models
+    depends_on:
+      redpanda:
+        condition: service_healthy
+      llm:
+        condition: service_healthy
+    cpus: "2.0"
+    mem_limit: 3g
+
+  signals-worker:
+    <<: *service-defaults
+    profiles: ["app", "setu"]
+    build:
+      context: .
+      dockerfile: workers/signals/Dockerfile
+    container_name: setu-signals-worker
+    environment:
+      REDPANDA_BROKERS: redpanda:9092
+      MENTIONS_MEDICAL_TOPIC: setu.mentions.medical
+      SIGNALS_FIREHOSE_TOPIC: setu.signals.firehose
+      SIGNALS_ADR_TOPIC: setu.signals.adr
+      SIGNALS_TREND_TOPIC: setu.signals.trend
+      SIGNALS_CLUSTER_TOPIC: setu.signals.cluster
+      AUDIT_TOPIC: setu.audit.events
+      SIGNALS_GROUP_ID: ${SIGNALS_GROUP_ID:-setu-signals}
+      ARCADEDB_URL: http://arcadedb:2480
+      ARCADEDB_DATABASE: osint
+      ARCADEDB_USER: root
+      ARCADEDB_PASSWORD: ${ARCADEDB_ROOT_PASSWORD:-change-me-local-only}
+      AUDIT_CHAIN_ENABLED: "true"
+    depends_on:
+      redpanda:
+        condition: service_healthy
+      arcadedb:
+        condition: service_healthy
+    cpus: "1.0"
+    mem_limit: 1g
+
+  writer-worker:
+    <<: *service-defaults
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: workers/writer/Dockerfile
+    container_name: osint-db-writer
+    environment:
+      REDPANDA_BROKERS: redpanda:9092
+      GRAPH_WRITE_TOPIC: osint.graph.write
+      EVENT_NOTIFICATION_TOPIC: osint.events.high_confidence
+      DB_WRITER_GROUP_ID: ${DB_WRITER_GROUP_ID:-osint-db-writer}
+      ARCADEDB_URL: http://arcadedb:2480
+      ARCADEDB_DATABASE: osint
+      ARCADEDB_USER: root
+      ARCADEDB_PASSWORD: ${ARCADEDB_ROOT_PASSWORD:-change-me-local-only}
+      EVIDENCE_EMBEDDING_DIMENSIONS: ${EVIDENCE_EMBEDDING_DIMENSIONS:-192}
+      EVIDENCE_VECTOR_MAX_CONNECTIONS: ${EVIDENCE_VECTOR_MAX_CONNECTIONS:-16}
+      EVIDENCE_VECTOR_BEAM_WIDTH: ${EVIDENCE_VECTOR_BEAM_WIDTH:-100}
+    depends_on:
+      redpanda:
+        condition: service_healthy
+      arcadedb:
+        condition: service_healthy
+
+  frontend:
+    <<: *service-defaults
+    profiles: ["app"]
+    build:
+      context: ./frontend
+    container_name: osint-frontend
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+      INTELLIGENCE_API_BASE_URL: http://backend:8000
+      REDPANDA_PROXY_URL: http://redpanda:8082
+      ARCADEDB_URL: http://arcadedb:2480
+      LLM_HEALTH_URL: http://llm:80/health
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  console:
+    <<: *service-defaults
+    profiles: ["ops"]
+    image: docker.redpanda.com/redpandadata/console:latest
+    container_name: osint-redpanda-console
+    environment:
+      KAFKA_BROKERS: redpanda:9092
+      SCHEMAREGISTRY_ENABLED: "true"
+      SCHEMAREGISTRY_URLS: http://redpanda:8081
+    ports:
+      - "8080:8080"
+    depends_on:
+      redpanda:
+        condition: service_healthy

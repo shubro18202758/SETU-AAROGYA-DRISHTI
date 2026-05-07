@@ -1,0 +1,43 @@
+{
+  "_meta": {
+    "description": "Synthetic X (Twitter) fixture for SETU AAROGYA DRISHTI offline demo & CI. Drawn loosely from the 'Coldrif Adverse Event Watch' scenario; does NOT contain real PII.",
+    "scenario": "Coldrif cough-syrup adverse event chatter, Oct 2025"
+  },
+  "tweets": [
+    {
+      "id": "1701000000000000001",
+      "text": "Reports from Madhya Pradesh — children admitted with vomiting & kidney issues after Coldrif cough syrup. Health dept investigating. #Coldrif",
+      "author": "@public_health_alert",
+      "created_at": "2025-10-04T08:21:00Z",
+      "lang": "en"
+    },
+    {
+      "id": "1701000000000000002",
+      "text": "Coldrif syrup peeke bachhe beemar pad gaye. Diethylene glycol contamination ka shak. Test reports aana baaki.",
+      "author": "@hindi_news_watch",
+      "created_at": "2025-10-04T09:05:00Z",
+      "lang": "hi"
+    },
+    {
+      "id": "1701000000000000003",
+      "text": "AKI cases linked to a paracetamol-based syrup batch. Drug controller asked to recall.",
+      "author": "@pharma_observer",
+      "created_at": "2025-10-04T10:11:00Z",
+      "lang": "en"
+    },
+    {
+      "id": "1701000000000000004",
+      "text": "Coldrif பேக் ரீகால். குழந்தைகளுக்கு கடுமையான பக்க விளைவுகள். தயவுசெய்து கொடுக்க வேண்டாம்.",
+      "author": "@tn_health_voice",
+      "created_at": "2025-10-04T11:32:00Z",
+      "lang": "ta"
+    },
+    {
+      "id": "1701000000000000005",
+      "text": "Random unrelated tweet about cricket match — should be filtered out by keywords.",
+      "author": "@sports_fan",
+      "created_at": "2025-10-04T12:00:00Z",
+      "lang": "en"
+    }
+  ]
+}

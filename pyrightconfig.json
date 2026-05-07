@@ -1,0 +1,6 @@
+{
+  "include": ["backend", "workers"],
+  "extraPaths": [".", "backend"],
+  "pythonVersion": "3.12",
+  "typeCheckingMode": "basic"
+}

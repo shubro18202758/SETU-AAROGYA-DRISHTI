@@ -1,0 +1,25 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/app/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib"
+  },
+  "registries": {
+    "dense-saas": {
+      "description": "Code-owned primitives for compact analyst dashboards and admin panels.",
+      "components": ["button", "input", "kbd", "panel", "progress", "scroll-area", "status-pill", "osint-shell", "osint-dashboard", "osint-workspaces", "live-signals", "intelligence-globe"]
+    }
+  }
+}
